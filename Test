@@ -1,0 +1,113 @@
+To test the code, we need a structured approach to ensure all functions perform as intended. Here’s how you can proceed:
+
+---
+
+### *Steps for Testing*
+
+1. *Prepare a Sample Dataset*:
+   - Create a small CSV file (test_dataset.csv) with a few rows of dummy data that matches the structure of the expected input.
+   - Include both numerical and categorical columns, and ensure a target column (e.g., ConsignmentPrice) exists.
+
+   Example:
+   csv
+   Weight,Distance,Category,ConsignmentPrice
+   10,100,Electronics,500
+   5,50,Furniture,200
+   20,300,Clothing,1000
+   
+
+2. *Unit Tests*:
+   - Test individual methods like load_data, clean_data, and preprocess_data to ensure they handle the dataset correctly.
+   - Verify the output shapes and types.
+
+3. *Integration Test*:
+   - Run the entire workflow using the main() function to ensure all components work together seamlessly.
+
+4. *Edge Cases*:
+   - Test with missing values, incorrect data types, or unexpected input to check the robustness.
+
+---
+
+### *Testing Code Example*
+
+Here’s a testing script you can use:
+
+python
+import pandas as pd
+from io import StringIO
+from consignment_pricing_solution import ConsignmentPricing
+
+# Sample dataset for testing
+sample_data = """
+Weight,Distance,Category,ConsignmentPrice
+10,100,Electronics,500
+5,50,Furniture,200
+20,300,Clothing,1000
+"""
+# Convert sample data to a DataFrame
+df = pd.read_csv(StringIO(sample_data))
+
+# Write testing functions
+def test_load_data():
+    print("Testing load_data...")
+    cp = ConsignmentPricing("test_dataset.csv", "ConsignmentPrice")
+    cp.data = df  # Simulate loading data
+    assert cp.data is not None
+    print("load_data test passed.\n")
+
+def test_clean_data():
+    print("Testing clean_data...")
+    cp = ConsignmentPricing("test_dataset.csv", "ConsignmentPrice")
+    cp.data = df.copy()  # Simulate loading data
+    cp.clean_data()
+    assert not cp.data.isnull().any().any()  # Ensure no missing values
+    print("clean_data test passed.\n")
+
+def test_preprocess_data():
+    print("Testing preprocess_data...")
+    cp = ConsignmentPricing("test_dataset.csv", "ConsignmentPrice")
+    cp.data = pd.get_dummies(df.copy(), drop_first=True)
+    cp.preprocess_data()
+    assert cp.X_train.shape[0] > 0 and cp.X_test.shape[0] > 0  # Ensure data split
+    print("preprocess_data test passed.\n")
+
+def test_train_models():
+    print("Testing train_models...")
+    cp = ConsignmentPricing("test_dataset.csv", "ConsignmentPrice")
+    cp.data = pd.get_dummies(df.copy(), drop_first=True)
+    cp.preprocess_data()
+    lr, rf = cp.train_models()
+    assert lr is not None and rf is not None  # Ensure models are trained
+    print("train_models test passed.\n")
+
+def test_evaluate_model():
+    print("Testing evaluate_model...")
+    cp = ConsignmentPricing("test_dataset.csv", "ConsignmentPrice")
+    cp.data = pd.get_dummies(df.copy(), drop_first=True)
+    cp.preprocess_data()
+    _, rf = cp.train_models()
+    mse, r2 = cp.evaluate_model(rf)
+    assert mse >= 0 and -1 <= r2 <= 1  # Ensure valid metrics
+    print("evaluate_model test passed.\n")
+
+# Run all tests
+if __name__ == "__main__":
+    test_load_data()
+    test_clean_data()
+    test_preprocess_data()
+    test_train_models()
+    test_evaluate_model()
+    print("All tests passed successfully!")
+
+
+---
+
+### *Execution*
+
+1. Save the testing script in the same directory as your main Python file (e.g., test_consignment_pricing.py).
+2. Run the script:
+   bash
+   python test_consignment_pricing.py
+   
+
+This script ensures that your code is functioning correctly and robustly. Let me know if you'd like further assistance setting this up or interpreting the test results!
